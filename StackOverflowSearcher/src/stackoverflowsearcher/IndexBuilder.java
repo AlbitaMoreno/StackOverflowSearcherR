@@ -5,10 +5,16 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
@@ -57,15 +63,34 @@ public final class IndexBuilder {
     }
     
     public void indexDocuments(List<String[]> preguntas, List<String[]> respuestas, List<String[]> etiquetas) {
-        // .......
-        // PARTE ALBA
+        for ( String[] d : preguntas){
+            Document doc = new Document();
+            //El ID y el OWNERID no lo almaceno, ya que es una número de usuario y no se estiman búsquedas por el campo
+            doc.add(new StringField("Id", d[0],Field.Store.NO));
+            doc.add(new StringField("OwnerUserId", d[1],Field.Store.NO));
+            doc.add(new StringField("CreationDate", d[2],Field.Store.YES));
+            doc.add(new StringField("Score", d[3],Field.Store.YES));
+            doc.add(new StringField("Title", d[4],Field.Store.YES));
+            doc.add(new TextField("Body", d[5],Field.Store.YES));
+
+            try {
+                writer.addDocument(doc);
+                //System.out.println(" d[0] " + d[0] + " d[1] " + d[1] + " d[2] " +d[2] + " d[3] " + d[3] + " d[4] " +d[4] + " d[5] " + d[5] );
+            } catch (IOException ex) {
+                System.out.println("Error writting document " + ex);
+            }
+        }   
     }
 
-    public void close() throws IOException {
-        // Ejecutamos todos los cambios pendientes en el índice
-        writer.commit();
-        
-        // Cerramos el IndexWriter
-        writer.close();
+    public void close(){
+        try{
+            // Ejecutamos todos los cambios pendientes en el índice
+            writer.commit();
+            // Cerramos el IndexWriter
+            writer.close();
+        } catch (IOException e){
+            System.out.println("Error closing index " + e);
+        }
+       
     }  
 }
