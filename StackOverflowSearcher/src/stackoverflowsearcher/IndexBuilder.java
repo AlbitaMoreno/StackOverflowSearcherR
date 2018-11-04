@@ -5,8 +5,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
@@ -33,7 +31,9 @@ public final class IndexBuilder {
         
         // Creamos analizador por campo
         Map<String, Analyzer> analyzerPerField = new HashMap<String, Analyzer>();
-        analyzerPerField.put("campo", new StandardAnalyzer());
+        analyzerPerField.put("Title", new StandardAnalyzer());
+        analyzerPerField.put("Body", new StandardAnalyzer());
+        //analyzerPerField.put("Code", new CodeAnalyzerR());
         
         this.ana = new PerFieldAnalyzerWrapper( new WhitespaceAnalyzer(), analyzerPerField);
         
@@ -70,12 +70,12 @@ public final class IndexBuilder {
             doc.add(new StringField("OwnerUserId", d[1],Field.Store.NO));
             doc.add(new StringField("CreationDate", d[2],Field.Store.YES));
             doc.add(new StringField("Score", d[3],Field.Store.YES));
-            doc.add(new StringField("Title", d[4],Field.Store.YES));
+            doc.add(new TextField("Title", d[4],Field.Store.YES));
             doc.add(new TextField("Body", d[5],Field.Store.YES));
+            //doc.add(new TextField("Code", CAMPO DE CODIGO ,Field.Store.YES));
 
             try {
                 writer.addDocument(doc);
-                //System.out.println(" d[0] " + d[0] + " d[1] " + d[1] + " d[2] " +d[2] + " d[3] " + d[3] + " d[4] " +d[4] + " d[5] " + d[5] );
             } catch (IOException ex) {
                 System.out.println("Error writting document " + ex);
             }
