@@ -19,21 +19,21 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.search.similarities.ClassicSimilarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
 
 public final class IndexBuilder {
     private PerFieldAnalyzerWrapper ana;
     private Similarity similarity;
     public static final String INDEX_DIRECTORY = "./index"; 
     private IndexWriter writer;
+    private Map<String, Analyzer> analyzerPerField = new HashMap<String, Analyzer>();
     
     public IndexBuilder(List<String[]> preguntas, List<String[]> respuestas, List<String[]> etiquetas) throws IOException {
         this.similarity = new ClassicSimilarity();
-        
-        // Creamos analizador por campo
-        Map<String, Analyzer> analyzerPerField = new HashMap<String, Analyzer>();
+        // Creamos analizador por campo       
         analyzerPerField.put("Title", new StandardAnalyzer());
         analyzerPerField.put("Body", new StandardAnalyzer());
-        //analyzerPerField.put("Code", new CodeAnalyzerR());
         
         this.ana = new PerFieldAnalyzerWrapper( new WhitespaceAnalyzer(), analyzerPerField);
         
@@ -72,7 +72,15 @@ public final class IndexBuilder {
             doc.add(new StringField("Score", d[3],Field.Store.YES));
             doc.add(new TextField("Title", d[4],Field.Store.YES));
             doc.add(new TextField("Body", d[5],Field.Store.YES));
-            //doc.add(new TextField("Code", CAMPO DE CODIGO ,Field.Store.YES));
+            
+            org.jsoup.nodes.Document code = Jsoup.parse(d[5]);
+            
+            for (Element e : code.getAllElements()){
+              if(e.tagName().equals("code")){
+                  doc.add(new TextField("Code", e.text(),Field.Store.YES));
+                  analyzerPerField.put("Code", new CodeAnalyzerR(e.text()));
+              }  
+            }
 
             try {
                 writer.addDocument(doc);

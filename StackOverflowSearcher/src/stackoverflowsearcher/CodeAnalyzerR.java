@@ -14,11 +14,11 @@ import org.xml.sax.SAXException;
 
 public class CodeAnalyzerR {
     private String codigo;
-    
-    public CodeAnalyzerR(String dir){
-        this.codigo = dir;
+
+    CodeAnalyzerR(String text) {
+        this.codigo = text;    
     }
-   
+
     public void index() throws IOException, FileNotFoundException, SAXException {
         Analyzer ana = CustomAnalyzer.builder(Paths.get("."))
             .withTokenizer(LetterTokenizerFactory.class)
