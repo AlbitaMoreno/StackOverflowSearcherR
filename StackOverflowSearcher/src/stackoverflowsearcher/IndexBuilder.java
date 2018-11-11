@@ -61,7 +61,8 @@ public final class IndexBuilder {
         // Creamos analizador por campo       
         analyzerPerField.put("Title", new StandardAnalyzer());
         analyzerPerField.put("Body", new StandardAnalyzer());
-        
+        analyzerPerField.put("Code", this.RcodeAnalyzer);
+
         this.ana = new PerFieldAnalyzerWrapper( new WhitespaceAnalyzer(), analyzerPerField);
         
         // Creamos el índice 
@@ -105,7 +106,6 @@ public final class IndexBuilder {
             for (Element e : code.getAllElements()){
               if(e.tagName().equals("code")){
                   doc.add(new TextField("Code", e.text(),Field.Store.YES));
-                  analyzerPerField.put("Code", this.RcodeAnalyzer);
               }  
             }
 
