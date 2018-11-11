@@ -114,7 +114,32 @@ public final class IndexBuilder {
             } catch (IOException ex) {
                 System.out.println("Error writting document " + ex);
             }
-        }   
+        }
+
+        for (String[] d : respuestas){
+            Document doc = new Document();
+            
+            doc.add(new StringField("Id", d[0],Field.Store.NO));
+            doc.add(new StringField("OwnerUserId", d[1],Field.Store.NO));
+            doc.add(new StringField("CreationDate", d[2],Field.Store.YES));
+            doc.add(new TextField("ParentId", d[4],Field.Store.NO));
+            doc.add(new StringField("Score", d[3],Field.Store.YES));
+            doc.add(new TextField("IsAcceptedAnswer", d[5],Field.Store.NO));            
+            doc.add(new TextField("Body", d[6],Field.Store.YES));
+            
+            org.jsoup.nodes.Document code = Jsoup.parse(d[5]);
+            
+            for (Element e : code.getAllElements()){
+              if(e.tagName().equals("code")){
+                  doc.add(new TextField("Code", e.text(),Field.Store.YES));
+              }  
+            }            
+            try {
+                writer.addDocument(doc);
+            } catch (IOException ex) {
+                System.out.println("Error writting document " + ex);
+            }
+        }
     }
 
     public void close(){
