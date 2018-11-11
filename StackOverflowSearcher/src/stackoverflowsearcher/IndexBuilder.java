@@ -2,10 +2,17 @@ package stackoverflowsearcher;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.CharArraySet;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.Tokenizer;
+import org.apache.lucene.analysis.core.LetterTokenizer;
+import org.apache.lucene.analysis.core.LowerCaseFilter;
+import org.apache.lucene.analysis.core.StopFilter;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -24,13 +31,33 @@ import org.jsoup.nodes.Element;
 
 public final class IndexBuilder {
     private PerFieldAnalyzerWrapper ana;
+    public Analyzer RcodeAnalyzer;
     private Similarity similarity;
     public static final String INDEX_DIRECTORY = "./index"; 
     private IndexWriter writer;
     private Map<String, Analyzer> analyzerPerField = new HashMap<String, Analyzer>();
+    private List<String> palabras_codigo_r = Arrays.asList("for","if","else","function","while","case","break","do","try","catch","return",
+    "objects","rm","assign","order","sort","numeric","character","integer");
     
     public IndexBuilder(List<String[]> preguntas, List<String[]> respuestas, List<String[]> etiquetas) throws IOException {
         this.similarity = new ClassicSimilarity();
+        
+        // Creamos un analizador de código R 
+        this.RcodeAnalyzer = new Analyzer(){
+            @Override
+            protected Analyzer.TokenStreamComponents createComponents(String string) {
+                // Extraemos caracteres alfanuméricos
+                final Tokenizer source = new LetterTokenizer();
+                
+                // Convertimos todo a minúscula
+                TokenStream result = new LowerCaseFilter(source);
+                
+                // Elimino palabras vacías
+                result = new StopFilter(result, new CharArraySet(palabras_codigo_r, false));
+                
+                return new TokenStreamComponents(source, result);
+            }
+        };
         // Creamos analizador por campo       
         analyzerPerField.put("Title", new StandardAnalyzer());
         analyzerPerField.put("Body", new StandardAnalyzer());
@@ -78,7 +105,7 @@ public final class IndexBuilder {
             for (Element e : code.getAllElements()){
               if(e.tagName().equals("code")){
                   doc.add(new TextField("Code", e.text(),Field.Store.YES));
-                  analyzerPerField.put("Code", new CodeAnalyzerR(e.text()));
+                  analyzerPerField.put("Code", this.RcodeAnalyzer);
               }  
             }
 

@@ -1,2 +1,0 @@
-"for","if","else","function","while","case","break","do","try","catch","return",
-"objects()","rm","assign","order()","sort","numeric","character","integer"
