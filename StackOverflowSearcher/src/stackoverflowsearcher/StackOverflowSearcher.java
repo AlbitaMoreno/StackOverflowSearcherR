@@ -1,6 +1,5 @@
 package stackoverflowsearcher;
 
-import stackoverflowsearcher.IndexBuilder;
 import com.opencsv.CSVReader;
 import java.io.Reader;
 import java.nio.file.Files;
@@ -13,7 +12,7 @@ import java.util.List;
  */
 public class StackOverflowSearcher {
 
-     public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
        
         // Extraer preguntas
         
@@ -50,6 +49,9 @@ public class StackOverflowSearcher {
         
         // Índice
         IndexBuilder i = new IndexBuilder(preguntas, respuestas, etiquetas);
+    
+        // Buscador
+        Search s = new Search(i.analyzerPerField);
     }
     
 }

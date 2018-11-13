@@ -33,9 +33,9 @@ public final class IndexBuilder {
     private PerFieldAnalyzerWrapper ana;
     public Analyzer RcodeAnalyzer;
     private Similarity similarity;
-    public static final String INDEX_DIRECTORY = "./index"; 
+    private static final String INDEX_DIRECTORY = "./index"; 
     private IndexWriter writer;
-    private Map<String, Analyzer> analyzerPerField = new HashMap<String, Analyzer>();
+    public Map<String, Analyzer> analyzerPerField = new HashMap<String, Analyzer>();
     private List<String> palabras_codigo_r = Arrays.asList("for","if","else","function","while","case","break","do","try","catch","return",
     "objects","rm","assign","order","sort","numeric","character","integer");
     
