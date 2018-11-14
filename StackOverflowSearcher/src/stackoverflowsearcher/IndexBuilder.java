@@ -1,6 +1,9 @@
 package stackoverflowsearcher;
 
+import com.opencsv.CSVReader;
 import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -39,7 +42,7 @@ public final class IndexBuilder {
     private List<String> palabras_codigo_r = Arrays.asList("for","if","else","function","while","case","break","do","try","catch","return",
     "objects","rm","assign","order","sort","numeric","character","integer");
     
-    public IndexBuilder(List<String[]> preguntas, List<String[]> respuestas, List<String[]> etiquetas) throws IOException {
+    public IndexBuilder(String ruta_preguntas, String ruta_respuestas, List<String[]> etiquetas) throws IOException {
         this.similarity = new ClassicSimilarity();
         
         // Creamos un analizador de código R 
@@ -69,7 +72,7 @@ public final class IndexBuilder {
         this.createIndex();
         
         // Añadimos los documentos
-        this.indexDocuments(preguntas, respuestas, etiquetas);
+        this.indexDocuments(ruta_preguntas, ruta_respuestas, etiquetas);
         
         // Cerramos el índice
         this.close();
@@ -90,9 +93,19 @@ public final class IndexBuilder {
         writer = new IndexWriter(dir, config); 
     }
     
-    public void indexDocuments(List<String[]> preguntas, List<String[]> respuestas, List<String[]> etiquetas) {
+    public void indexDocuments(String ruta_preguntas, String ruta_respuestas, List<String[]> etiquetas) throws IOException {
         Document doc = new Document();
-        for ( String[] d : preguntas){
+        
+        // PREGUNTAS
+        
+        // Abro csv para extraer preguntas
+        Reader reader = Files.newBufferedReader(Paths.get(ruta_preguntas));
+        CSVReader csvreader = new CSVReader(reader);
+        
+        csvreader.readNext(); // Evito hacer un documento con la columna de los nombres de los campos
+        
+        String [] d;
+        while((d = csvreader.readNext()) != null) {
             //El ID y el OWNERID no lo almaceno, ya que es una número de usuario y no se estiman búsquedas por el campo
             doc.add(new StringField("Id", d[0],Field.Store.NO));
             doc.add(new StringField("OwnerUserId", d[1],Field.Store.NO));
@@ -114,7 +127,21 @@ public final class IndexBuilder {
                 System.out.println("Error writting document " + ex);
             }
         }
-        for (String[] d : respuestas){            
+        
+        csvreader.close(); // Cerramos csv
+        
+        // RESPUESTAS
+        
+        // Abro csv para extraer preguntas
+        reader = Files.newBufferedReader(Paths.get(ruta_respuestas));
+        csvreader = new CSVReader(reader);
+        
+        csvreader.readNext(); // Evito hacer un documento con la columna de los nombres de los campos
+        
+        while((d = csvreader.readNext()) != null) {   
+            for(String a : d) System.out.print(a + " ");
+            System.out.print("\n");
+            
             doc.add(new StringField("Id", d[0],Field.Store.NO));
             doc.add(new StringField("OwnerUserId", d[1],Field.Store.NO));
             doc.add(new StringField("CreationDate", d[2],Field.Store.YES));
@@ -136,6 +163,8 @@ public final class IndexBuilder {
                 System.out.println("Error writting document " + ex);
             }
         }
+        
+        csvreader.close(); // Cerramos csv
     }
 
     public void close(){

@@ -43,7 +43,7 @@ public class Search {
         Iterator it = this.analyzerPerField.entrySet().iterator();
         while(it.hasNext()) {
             Map.Entry e = (Map.Entry) it.next();
-            QueryParser parser = new QueryParser(e.getKey().toString(), (Analyzer) e.getValue());
+            QueryParser parser = new QueryParser((String) e.getKey(), (Analyzer) e.getValue());
             
             while(true) {
                 String linea = in.readLine();
