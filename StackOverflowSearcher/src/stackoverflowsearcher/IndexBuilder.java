@@ -81,7 +81,7 @@ public final class IndexBuilder {
         config.setSimilarity(similarity); // Usamos como medida de similitud el Okapi BM25
         
         // Creamos un nuevo índice
-        config.setOpenMode(OpenMode.CREATE);
+        config.setOpenMode(OpenMode.CREATE_OR_APPEND);
         
         // Construimos IndexWriter con los parámetros dados en config
         writer = new IndexWriter(dir, config); 

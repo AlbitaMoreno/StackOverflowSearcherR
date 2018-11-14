@@ -31,10 +31,10 @@ import org.apache.lucene.search.TopDocs;
  * @author Alba, Antonio
  */
 public class IndexSearch {
-    private IndexReader rutaIndex;
+    private final IndexReader  rutaIndex = DirectoryReader.open(FSDirectory.open(Paths.get("../../index")));
     private Analyzer anTexto = new StandardAnalyzer();
     private Similarity sim = new ClassicSimilarity();
-    
+    private Query query;
     //==========================================================================
     //  Los índices tienen los siguientes campos:
     //      Questions:
@@ -49,9 +49,9 @@ public class IndexSearch {
     //          3. CreationDate
     //          4. Score
     //          5. Code
-    IndexSearch(String indexPath) throws IOException {
-        this.rutaIndex = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)));
-
+    IndexSearch(Query query) throws IOException {
+        //LLAMADA CODIGO ALBERTO PARA TRATAR LA QUERY
+        this.query = query;
     }
     
     public void indexSearch() throws IOException{
@@ -60,39 +60,13 @@ public class IndexSearch {
         
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
         QueryParser parser = new QueryParser("Title_q", this.anTexto);
-        
-        while(true){
-            System.out.println("Consulta?: ");
-            String line = in.readLine();
+        TopDocs results = searcher.search(query,100);
+        ScoreDoc [] hits = results.scoreDocs;
 
-            if(line == null || line.length() == -1){
-                break;
-            }
-            line = line.trim();
-            if(line.length() == 0){
-                break;
-            }
-            
-            Query query;
-            try{
-                query = parser.parse(line);
-            } catch (ParseException ex) {
-                Logger.getLogger(IndexSearch.class.getName()).log(Level.SEVERE, null, ex);
-                continue;
-            }
-            
-            TopDocs results = searcher.search(query,100);
-            ScoreDoc [] hits = results.scoreDocs;
-                        
-            for(int j=0; j < hits.length; j++){
-                Document doc = searcher.doc(hits[j].doc);
-                String body = doc.get("Title_q");
-                Integer id = doc.getField("Score_q").numericValue().intValue();
-            }
-            
-            if(line.equals("")){
-                break;
-            }
+        for(int j=0; j < hits.length; j++){
+            Document doc = searcher.doc(hits[j].doc);
+            String body = doc.get("Title_q");
+            Integer id = doc.getField("Score_q").numericValue().intValue();
         }
         rutaIndex.close();
     }
