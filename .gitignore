@@ -26,6 +26,5 @@ hs_err_pid*
 /nbproject/
 test/
 /build/
-lib/
 
 /StackOverflowSearcher/build/

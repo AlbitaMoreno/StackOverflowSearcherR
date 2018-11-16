@@ -35,7 +35,7 @@ public class Search {
         // Por defecto, le vamos a asignar la métrica de similitud BM25Similarity
         IndexSearcher searcher = new IndexSearcher(reader);
         
-        // Preparo la consulta
+        // Preparo entrada
         BufferedReader in = new BufferedReader(
                 new InputStreamReader(System.in, StandardCharsets.UTF_8));
         

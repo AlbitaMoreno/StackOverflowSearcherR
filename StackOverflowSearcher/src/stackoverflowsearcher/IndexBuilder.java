@@ -26,7 +26,7 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.search.similarities.ClassicSimilarity;
+import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
 import org.jsoup.Jsoup;
@@ -43,7 +43,7 @@ public final class IndexBuilder {
     "objects","rm","assign","order","sort","numeric","character","integer");
     
     public IndexBuilder(String ruta_preguntas, String ruta_respuestas, List<String[]> etiquetas) throws IOException {
-        this.similarity = new ClassicSimilarity();
+        this.similarity = new BM25Similarity();
         
         // Creamos un analizador de código R 
         this.RcodeAnalyzer = new Analyzer(){
@@ -93,9 +93,7 @@ public final class IndexBuilder {
         writer = new IndexWriter(dir, config); 
     }
     
-    public void indexDocuments(String ruta_preguntas, String ruta_respuestas, List<String[]> etiquetas) throws IOException {
-        Document doc = new Document();
-        
+    public void indexDocuments(String ruta_preguntas, String ruta_respuestas, List<String[]> etiquetas) throws IOException {   
         // PREGUNTAS
         
         // Abro csv para extraer preguntas
@@ -106,6 +104,8 @@ public final class IndexBuilder {
         
         String [] d;
         while((d = csvreader.readNext()) != null) {
+            Document doc = new Document();
+            
             //El ID y el OWNERID no lo almaceno, ya que es una número de usuario y no se estiman búsquedas por el campo
             doc.add(new StringField("Id", d[0],Field.Store.NO));
             doc.add(new StringField("OwnerUserId", d[1],Field.Store.NO));
@@ -121,11 +121,8 @@ public final class IndexBuilder {
                   doc.add(new TextField("Code", e.text(),Field.Store.YES));
               }  
             }
-            try {
-                writer.addDocument(doc);
-            } catch (IOException ex) {
-                System.out.println("Error writting document " + ex);
-            }
+            
+            writer.addDocument(doc);
         }
         
         csvreader.close(); // Cerramos csv
@@ -138,7 +135,9 @@ public final class IndexBuilder {
         
         csvreader.readNext(); // Evito hacer un documento con la columna de los nombres de los campos
         
-        while((d = csvreader.readNext()) != null) {   
+        while((d = csvreader.readNext()) != null) {  
+            Document doc = new Document();
+            
             for(String a : d) System.out.print(a + " ");
             System.out.print("\n");
             
@@ -157,11 +156,8 @@ public final class IndexBuilder {
                   doc.add(new TextField("Code", e.text(),Field.Store.YES));
               }  
             }            
-            try {
-                writer.addDocument(doc);
-            } catch (IOException ex) {
-                System.out.println("Error writting document " + ex);
-            }
+            
+            writer.addDocument(doc);
         }
         
         csvreader.close(); // Cerramos csv
