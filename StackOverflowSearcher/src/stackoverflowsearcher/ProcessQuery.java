@@ -1,12 +1,18 @@
 package stackoverflowsearcher;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
 
 public class ProcessQuery {
     private static final String INDEX_DIRECTORY = "./index";
@@ -16,7 +22,7 @@ public class ProcessQuery {
         this.line = line;
     }
     
-    public Map<String,Query> procQuery() throws ParseException {
+    public BooleanQuery procQuery() throws ParseException {
         Map<String,Query> queries = new HashMap<String,Query>();
         
         // Parseamos título de la pregunta
@@ -61,8 +67,19 @@ public class ProcessQuery {
         
         queries.put("Code_a", query);
         
+        BooleanQuery.Builder bqbuilder = new BooleanQuery.Builder();
         
-        return queries;
+        Iterator it = queries.entrySet().iterator();
+        while(it.hasNext()) {
+            Map.Entry e = (Map.Entry) it.next();
+            String field = (String) e.getKey();
+            Query q = (Query) e.getValue();
+            
+            BooleanClause bc = new BooleanClause(q, BooleanClause.Occur.SHOULD);
+            bqbuilder.add(bc);
+        }
+        
+        return bqbuilder.build();
     }
     
     public Query procFacet() {

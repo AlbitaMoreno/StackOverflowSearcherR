@@ -46,20 +46,14 @@ public class IndexSearch {
         // Por defecto, le vamos a asignar la métrica de similitud BM25Similarity
         IndexSearcher searcher = new IndexSearcher(reader);
         
-        Iterator it = this.query.procQuery().entrySet().iterator();
-        while(it.hasNext()) {
-            Map.Entry e = (Map.Entry) it.next();
-            String field = (String) e.getKey();
-            Query q = (Query) e.getValue();
-            
-            TopDocs results = searcher.search(q,100);
-            ScoreDoc [] hits = results.scoreDocs;
+        TopDocs results = searcher.search(this.query.procQuery(),100);
+        ScoreDoc [] hits = results.scoreDocs;
 
-            for(int j=0; j < hits.length; j++){
-                Document doc = searcher.doc(hits[j].doc);
-                String body = doc.get("Title_q");
-                Integer id = doc.getField("Score_q").numericValue().intValue();
-            }
+        for(int j=0; j < hits.length; j++){
+            Document doc = searcher.doc(hits[j].doc);
+            String body = doc.get("Title_q");
+            //Integer id = doc.getField("Score").numericValue().intValue();
+            System.out.println(body);
         }
               
         // Cerramos el directorio de índices
