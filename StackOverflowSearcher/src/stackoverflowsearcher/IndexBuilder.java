@@ -61,6 +61,7 @@ public final class IndexBuilder {
                 return new TokenStreamComponents(source, result);
             }
         };
+        
         // Creamos analizador por campo       
         analyzerPerField.put("Title", new StandardAnalyzer());
         analyzerPerField.put("Body", new StandardAnalyzer());
@@ -87,7 +88,7 @@ public final class IndexBuilder {
         config.setSimilarity(similarity); // Usamos como medida de similitud el Okapi BM25
         
         // Creamos un nuevo índice
-        config.setOpenMode(OpenMode.CREATE);
+        config.setOpenMode(OpenMode.CREATE_OR_APPEND);
         
         // Construimos IndexWriter con los parámetros dados en config
         writer = new IndexWriter(dir, config); 
@@ -107,18 +108,18 @@ public final class IndexBuilder {
             Document doc = new Document();
             
             //El ID y el OWNERID no lo almaceno, ya que es una número de usuario y no se estiman búsquedas por el campo
-            doc.add(new StringField("Id", d[0],Field.Store.NO));
-            doc.add(new StringField("OwnerUserId", d[1],Field.Store.NO));
-            doc.add(new StringField("CreationDate", d[2],Field.Store.YES));
-            doc.add(new StringField("Score", d[3],Field.Store.YES));
-            doc.add(new TextField("Title", d[4],Field.Store.YES));
-            doc.add(new TextField("Body", d[5],Field.Store.YES));
+            doc.add(new StringField("Id_q", d[0],Field.Store.NO));
+            doc.add(new StringField("OwnerUserId_q", d[1],Field.Store.NO));
+            doc.add(new StringField("CreationDate_q", d[2],Field.Store.YES));
+            doc.add(new StringField("Score_q", d[3],Field.Store.YES));
+            doc.add(new TextField("Title_q", d[4],Field.Store.YES));
+            doc.add(new TextField("Body_q", d[5],Field.Store.YES));
             
             org.jsoup.nodes.Document code = Jsoup.parse(d[5]);
             
             for (Element e : code.getAllElements()){
               if(e.tagName().equals("code")){
-                  doc.add(new TextField("Code", e.text(),Field.Store.YES));
+                  doc.add(new TextField("Code_q", e.text(),Field.Store.YES));
               }  
             }
             
@@ -137,23 +138,20 @@ public final class IndexBuilder {
         
         while((d = csvreader.readNext()) != null) {  
             Document doc = new Document();
-            
-            for(String a : d) System.out.print(a + " ");
-            System.out.print("\n");
-            
-            doc.add(new StringField("Id", d[0],Field.Store.NO));
-            doc.add(new StringField("OwnerUserId", d[1],Field.Store.NO));
-            doc.add(new StringField("CreationDate", d[2],Field.Store.YES));
-            doc.add(new TextField("ParentId", d[4],Field.Store.NO));
-            doc.add(new StringField("Score", d[3],Field.Store.YES));
-            doc.add(new TextField("IsAcceptedAnswer", d[5],Field.Store.NO));            
-            doc.add(new TextField("Body", d[6],Field.Store.YES));
+                      
+            doc.add(new StringField("Id_a", d[0],Field.Store.NO));
+            doc.add(new StringField("OwnerUserId_a", d[1],Field.Store.NO));
+            doc.add(new StringField("CreationDate_a", d[2],Field.Store.YES));
+            doc.add(new TextField("ParentId_a", d[4],Field.Store.NO));
+            doc.add(new StringField("Score_a", d[3],Field.Store.YES));
+            doc.add(new TextField("IsAcceptedAnswer_a", d[5],Field.Store.YES));            
+            doc.add(new TextField("Body_a", d[6],Field.Store.YES));
             
             org.jsoup.nodes.Document code = Jsoup.parse(d[5]);
             
             for (Element e : code.getAllElements()){
               if(e.tagName().equals("code")){
-                  doc.add(new TextField("Code", e.text(),Field.Store.YES));
+                  doc.add(new TextField("Code_a", e.text(),Field.Store.YES));
               }  
             }            
             
