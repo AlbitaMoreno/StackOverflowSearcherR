@@ -1,6 +1,9 @@
 package stackoverflowsearcher;
 
+import com.opencsv.CSVReader;
 import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -23,7 +26,7 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.search.similarities.ClassicSimilarity;
+import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
 import org.jsoup.Jsoup;
@@ -33,13 +36,16 @@ public final class IndexBuilder {
     private PerFieldAnalyzerWrapper ana;
     public Analyzer RcodeAnalyzer;
     private Similarity similarity;
-    public static final String INDEX_DIRECTORY = "./index"; 
+    private static final String INDEX_DIRECTORY = "./index"; 
     private IndexWriter writer;
-    private Map<String, Analyzer> analyzerPerField = new HashMap<String, Analyzer>();
+    public Map<String, Analyzer> analyzerPerField = new HashMap<String, Analyzer>();
     private List<String> palabras_codigo_r = Arrays.asList("for","if","else","function","while","case","break","do","try","catch","return",
     "objects","rm","assign","order","sort","numeric","character","integer");
     
-    public IndexBuilder(List<String[]> preguntas, List<String[]> respuestas, List<String[]> etiquetas) throws IOException {
+    public IndexBuilder(String ruta_preguntas, String ruta_respuestas, List<String[]> etiquetas) throws IOException {
+        this.similarity = new BM25Similarity();
+        
+        // Creamos un analizador de código R 
         this.RcodeAnalyzer = new Analyzer(){
             @Override
             protected Analyzer.TokenStreamComponents createComponents(String string) {
@@ -55,6 +61,7 @@ public final class IndexBuilder {
                 return new TokenStreamComponents(source, result);
             }
         };
+        
         // Creamos analizador por campo       
         analyzerPerField.put("Title", new StandardAnalyzer());
         analyzerPerField.put("Body", new StandardAnalyzer());
@@ -66,7 +73,7 @@ public final class IndexBuilder {
         this.createIndex();
         
         // Añadimos los documentos
-        this.indexDocuments(preguntas, respuestas, etiquetas);
+        this.indexDocuments(ruta_preguntas, ruta_respuestas, etiquetas);
         
         // Cerramos el índice
         this.close();
@@ -87,9 +94,19 @@ public final class IndexBuilder {
         writer = new IndexWriter(dir, config); 
     }
     
-    public void indexDocuments(List<String[]> preguntas, List<String[]> respuestas, List<String[]> etiquetas) {
-        Document doc = new Document();
-        for ( String[] d : preguntas){
+    public void indexDocuments(String ruta_preguntas, String ruta_respuestas, List<String[]> etiquetas) throws IOException {   
+        // PREGUNTAS
+        
+        // Abro csv para extraer preguntas
+        Reader reader = Files.newBufferedReader(Paths.get(ruta_preguntas));
+        CSVReader csvreader = new CSVReader(reader);
+        
+        csvreader.readNext(); // Evito hacer un documento con la columna de los nombres de los campos
+        
+        String [] d;
+        while((d = csvreader.readNext()) != null) {
+            Document doc = new Document();
+            
             //El ID y el OWNERID no lo almaceno, ya que es una número de usuario y no se estiman búsquedas por el campo
             doc.add(new StringField("Id_q", d[0],Field.Store.NO));
             doc.add(new StringField("OwnerUserId_q", d[1],Field.Store.NO));
@@ -105,13 +122,23 @@ public final class IndexBuilder {
                   doc.add(new TextField("Code_q", e.text(),Field.Store.YES));
               }  
             }
-            try {
-                writer.addDocument(doc);
-            } catch (IOException ex) {
-                System.out.println("Error writting document " + ex);
-            }
+            
+            writer.addDocument(doc);
         }
-        for (String[] d : respuestas){            
+        
+        csvreader.close(); // Cerramos csv
+        
+        // RESPUESTAS
+        
+        // Abro csv para extraer preguntas
+        reader = Files.newBufferedReader(Paths.get(ruta_respuestas));
+        csvreader = new CSVReader(reader);
+        
+        csvreader.readNext(); // Evito hacer un documento con la columna de los nombres de los campos
+        
+        while((d = csvreader.readNext()) != null) {  
+            Document doc = new Document();
+                      
             doc.add(new StringField("Id_a", d[0],Field.Store.NO));
             doc.add(new StringField("OwnerUserId_a", d[1],Field.Store.NO));
             doc.add(new StringField("CreationDate_a", d[2],Field.Store.YES));
@@ -127,12 +154,11 @@ public final class IndexBuilder {
                   doc.add(new TextField("Code_a", e.text(),Field.Store.YES));
               }  
             }            
-            try {
-                writer.addDocument(doc);
-            } catch (IOException ex) {
-                System.out.println("Error writting document " + ex);
-            }
+            
+            writer.addDocument(doc);
         }
+        
+        csvreader.close(); // Cerramos csv
     }
 
     public void close(){
