@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -42,14 +43,15 @@ public final class IndexBuilder {
     private static final String INDEX_DIRECTORY = "./index"; 
     private static final String FACET_DIRECTORY = "./facet"; 
     private IndexWriter writer;
-    public Map<String, Analyzer> analyzerPerField = new HashMap<String, Analyzer>();
+    public Map<String, Analyzer> analyzerPerField = new HashMap<>();
     private List<String> palabras_codigo_r = Arrays.asList("for","if","else","function","while","case","break","do","try","catch","return",
     "objects","rm","assign","order","sort","numeric","character","integer");
     private FacetsConfig fconfig;
     private DirectoryTaxonomyWriter fwriter;
     private String[] meses;
+    private Map<String, List<String>> etiquetas = new HashMap<>();
     
-    public IndexBuilder(String ruta_preguntas, String ruta_respuestas, List<String[]> etiquetas) throws IOException {
+    public IndexBuilder(String ruta_preguntas, String ruta_respuestas, String ruta_etiquetas) throws IOException {
         this.meses = new String[]{"ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO",
             "JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"};
         this.similarity = new BM25Similarity();
@@ -82,7 +84,7 @@ public final class IndexBuilder {
         this.createIndex();
         
         // Añadimos los documentos
-        this.indexDocuments(ruta_preguntas, ruta_respuestas, etiquetas);
+        this.indexDocuments(ruta_preguntas, ruta_respuestas, ruta_etiquetas);
         
         // Cerramos el índice
         this.close();
@@ -109,7 +111,9 @@ public final class IndexBuilder {
         fconfig.setIndexFieldName("pregunta","facet_pregunta"); // La faceta pregunta la gestiona dentro del facet_pregunta
         fconfig.setIndexFieldName("respuesta_aceptada","facet_respuesta_aceptada"); // La faceta respuesta_aceptada la gestiona dentro del facet_respuesta_aceptada
         fconfig.setIndexFieldName("puntuacion", "facet_puntuacion"); // La faceta puntuacion la gestiona dentro del facet_puntuacion
+        fconfig.setIndexFieldName("etiqueta", "facet_etiqueta"); // La faceta etiqueta la gestiona dentro del facet_etiqueta
         
+        fconfig.setMultiValued("etiqueta", true); // Indicamos que la faceta etiqueta puede contener varios valores
         fconfig.setHierarchical("fecha", true); // Creamos una jerarquía para la faceta fecha
         
         // Construimos IndexWriter con los parámetros dados en config
@@ -119,16 +123,41 @@ public final class IndexBuilder {
         fwriter = new DirectoryTaxonomyWriter(factDir);
     }
     
-    public void indexDocuments(String ruta_preguntas, String ruta_respuestas, List<String[]> etiquetas) throws IOException {   
-        // PREGUNTAS
+    public void indexDocuments(String ruta_preguntas, String ruta_respuestas, String ruta_etiquetas) throws IOException {   
+        // ETIQUETAS
         
         // Abro csv para extraer preguntas
-        Reader reader = Files.newBufferedReader(Paths.get(ruta_preguntas));
+        Reader reader = Files.newBufferedReader(Paths.get(ruta_etiquetas));
         CSVReader csvreader = new CSVReader(reader);
         
         csvreader.readNext(); // Evito hacer un documento con la columna de los nombres de los campos
         
         String [] d;
+        while((d = csvreader.readNext()) != null) {
+            if(etiquetas.containsKey(d[0])) {
+                List<String> l = etiquetas.get(d[0]);
+                l.add(d[1]);
+                etiquetas.replace(d[0], etiquetas.get(d[0]), l);
+            }
+            else {
+                List<String> l = new ArrayList<>();
+                l.add(d[1]);
+                etiquetas.put(d[0], l);
+            }
+        }
+        
+        csvreader.close(); // Cerramos csv
+
+        System.out.println(this.etiquetas);
+        
+        // PREGUNTAS
+        
+        // Abro csv para extraer preguntas
+        reader = Files.newBufferedReader(Paths.get(ruta_preguntas));
+        csvreader = new CSVReader(reader);
+        
+        csvreader.readNext(); // Evito hacer un documento con la columna de los nombres de los campos
+        
         while((d = csvreader.readNext()) != null) {
             Document doc = new Document();
             
@@ -158,6 +187,9 @@ public final class IndexBuilder {
             doc.add(new FacetField("fecha", fecha[0], meses[Integer.parseInt(fecha[1]) - 1]));
             
             doc.add(new FacetField("puntuacion", this.categorizeScore(Integer.parseInt(d[3]))));
+            
+            List<String> et = etiquetas.get(d[0]);
+            if(et != null) et.forEach((e) -> { doc.add(new FacetField("etiqueta", e)); });          
             
             writer.addDocument(fconfig.build(fwriter, doc));
         }
@@ -203,10 +235,14 @@ public final class IndexBuilder {
             
             doc.add(new FacetField("puntuacion", this.categorizeScore(Integer.parseInt(d[3]))));
             
+            List<String> et = etiquetas.get(d[0]);
+            if(et != null) et.forEach((e) -> { doc.add(new FacetField("etiqueta", e)); });   
+            
             writer.addDocument(fconfig.build(fwriter, doc));
         }
         
         csvreader.close(); // Cerramos csv
+    
     }
 
     public void close(){
