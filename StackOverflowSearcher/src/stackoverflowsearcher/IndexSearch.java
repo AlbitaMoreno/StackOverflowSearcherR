@@ -48,12 +48,32 @@ public class IndexSearch {
         
         TopDocs results = searcher.search(this.query.procQuery(),100);
         ScoreDoc [] hits = results.scoreDocs;
-
+        
+        System.out.println("--------------------RESULTADOS--------------------");
+        
         for(int j=0; j < hits.length; j++){
             Document doc = searcher.doc(hits[j].doc);
-            String body = doc.get("Title_q");
+            String title_q = doc.get("Title_q");
+            String body_q = doc.get("Body_q");
+            String code_q = doc.get("Code_q");
+            String title_a = doc.get("Title_a");
+            String body_a = doc.get("Body_a");
+            String code_a = doc.get("Code_a");
+
             //Integer id = doc.getField("Score").numericValue().intValue();
-            System.out.println(body);
+            if(title_q != null)
+                System.out.println("Título pregunta: \n" + title_q);
+            if(body_q != null)
+                System.out.println("Cuerpo: \n" + body_q);
+            if(code_q != null)
+                System.out.println("Código relacionado con la pregunta \n" + code_q);
+            if(title_a != null)
+                System.out.println("Título respuesta: \n" + title_a);
+            if(body_a != null)
+                System.out.println("Cuerpo: \n" + body_a);
+            if(code_a != null)
+                System.out.println("Código relacionado con la pregunta \n" + code_a);
+            
         }
               
         // Cerramos el directorio de índices
