@@ -19,7 +19,7 @@ import org.apache.lucene.analysis.core.LowerCaseFilter;
 import org.apache.lucene.analysis.core.StopFilter;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.core.StopAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
@@ -74,9 +74,11 @@ public final class IndexBuilder {
         };
         
         // Creamos analizador por campo       
-        analyzerPerField.put("Title", new StandardAnalyzer());
-        analyzerPerField.put("Body", new StandardAnalyzer());
-        analyzerPerField.put("Code", this.RcodeAnalyzer);
+        analyzerPerField.put("Title_q", new StopAnalyzer());
+        analyzerPerField.put("Body_q", new StopAnalyzer());
+        analyzerPerField.put("Body_a", new StopAnalyzer());
+        analyzerPerField.put("Code_q", this.RcodeAnalyzer);
+        analyzerPerField.put("Code_a", this.RcodeAnalyzer);
 
         this.ana = new PerFieldAnalyzerWrapper( new WhitespaceAnalyzer(), analyzerPerField);
         
