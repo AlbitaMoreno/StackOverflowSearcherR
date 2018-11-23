@@ -25,8 +25,8 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
 public class IndexSearch {
-    private static final String INDEX_DIRECTORY = "./index";
-    private final String INDEX_DIRECTORY_FACETS = "./facet";
+    private static final String INDEX_DIRECTORY = "./../../index";
+    private final String INDEX_DIRECTORY_FACETS = "./../../facet";
     private ProcessQuery query;
     private TaxonomyReader txReader;
     public Map<String, String> resultsMap = new HashMap<>();
@@ -91,11 +91,11 @@ public class IndexSearch {
                 resultsMap.put("Code_a",code_a);
         }      
         // Cerramos el directorio de índices
-        reader.close();
-        _facetSearch(searcher);
+        
+        _facetSearch(searcher, reader);
     }
     
-    private Map<String, Number> _facetSearch(IndexSearcher searcher) throws IOException {
+    private Map<String, Number> _facetSearch(IndexSearcher searcher, IndexReader reader) throws IOException {
         TopDocs tdc = FacetsCollector.search(searcher,query.query,10,fc);
         FacetsConfig fconfig = new FacetsConfig();
         Facets facetas = new FastTaxonomyFacetCounts(txReader,fconfig,fc);
@@ -105,7 +105,8 @@ public class IndexSearch {
             for( LabelAndValue lv : fr.labelValues){
                 resultsFacetMap.put(lv.label,lv.value);
             }
-        }        
+        }
+        reader.close();
         return this.resultsFacetMap;
     }
     public Map<String, String> getResultSearch() throws IOException, ParseException{

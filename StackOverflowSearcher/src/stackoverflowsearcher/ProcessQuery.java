@@ -11,7 +11,7 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 
 public class ProcessQuery {
-    private static final String INDEX_DIRECTORY = "./index";
+    private static final String INDEX_DIRECTORY = "./../../index";
     private String line;
     public BooleanQuery query;
     
