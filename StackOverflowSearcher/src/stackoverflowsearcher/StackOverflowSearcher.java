@@ -20,17 +20,9 @@ public class StackOverflowSearcher {
         boolean indexNotDefine = false;
         // Extraer etiquetas
         if(indexNotDefine){
-            // Abro csv
-            Reader reader = Files.newBufferedReader(Paths.get("./rquestions/Tags.csv"));
-            CSVReader csvreader = new CSVReader(reader);
-
-            List<String[]> etiquetas = csvreader.readAll(); // Leo archivo
-            etiquetas.remove(0); // Elimino la primera fila que informa del nombre de las columnas
-
-            csvreader.close(); // Cerramos csv
-
             // Índice
-            IndexBuilder i = new IndexBuilder("./rquestions/Questions.csv", "./rquestions/Answers.csv", etiquetas);
+            IndexBuilder i = new IndexBuilder("./rquestions/Questions.csv", 
+            "./rquestions/Answers.csv", "./rquestions/Tags.csv");
         }
         // Búsqueda
         while(true){
