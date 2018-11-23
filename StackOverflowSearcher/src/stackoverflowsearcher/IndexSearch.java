@@ -2,11 +2,10 @@ package stackoverflowsearcher;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.facet.FacetResult;
 import org.apache.lucene.facet.Facets;
@@ -19,9 +18,7 @@ import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyReader;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
@@ -29,7 +26,7 @@ import org.apache.lucene.store.FSDirectory;
 
 public class IndexSearch {
     private static final String INDEX_DIRECTORY = "./index";
-    private final String INDEX_DIRECTORY_FACETS = "./index/facet";
+    private final String INDEX_DIRECTORY_FACETS = "./facet";
     private ProcessQuery query;
     private TaxonomyReader txReader;
     public Map<String, String> resultsMap = new HashMap<>();
@@ -53,7 +50,7 @@ public class IndexSearch {
     //          5. Code
     //======================================================================
     public IndexSearch(String line) throws IOException {
-        this.txReader = new DirectoryTaxonomyReader((Directory) Paths.get(INDEX_DIRECTORY_FACETS));
+        this.txReader = new DirectoryTaxonomyReader(FSDirectory.open(Paths.get(INDEX_DIRECTORY_FACETS)));
         this.query = new ProcessQuery(line);
     }
     
