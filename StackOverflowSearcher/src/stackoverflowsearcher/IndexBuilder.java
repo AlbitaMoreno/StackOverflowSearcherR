@@ -116,6 +116,7 @@ public final class IndexBuilder {
         
         fconfig.setMultiValued("etiqueta", true); // Indicamos que la faceta etiqueta puede contener varios valores
         fconfig.setHierarchical("fecha", true); // Creamos una jerarquía para la faceta fecha
+        
         // Creamos un nuevo índice
         config.setOpenMode(OpenMode.CREATE);
         
@@ -226,9 +227,8 @@ public final class IndexBuilder {
             }          
             
             // Incluimos las facetas
-            doc.add(new FacetField("pregunta", "false"));
+            doc.add(new FacetField("es_pregunta", "false"));
             doc.add(new FacetField("respuesta_aceptada", d[5]));
-            doc.add(new FacetField("usuario", d[1]));
             
             // Extraemos el mes y el año
             String [] fecha;
