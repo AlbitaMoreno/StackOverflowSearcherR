@@ -17,11 +17,13 @@ public class StackOverflowSearcher {
     
     public static void main(String[] args) throws Exception { 
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
-
-        // Índice
-        IndexBuilder i = new IndexBuilder("./rquestions/Questions.csv", 
-                "./rquestions/Answers.csv", "./rquestions/Tags.csv");
-    
+        boolean indexNotDefine = false;
+        // Extraer etiquetas
+        if(indexNotDefine){
+            // Índice
+            IndexBuilder i = new IndexBuilder("./rquestions/Questions.csv", 
+            "./rquestions/Answers.csv", "./rquestions/Tags.csv");
+        }
         // Búsqueda
         while(true){
             System.out.println("Consulta?: ");

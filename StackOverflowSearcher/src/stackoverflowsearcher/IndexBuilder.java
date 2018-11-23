@@ -22,6 +22,7 @@ import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.core.StopAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.facet.FacetField;
@@ -107,16 +108,16 @@ public final class IndexBuilder {
         // Configuramos facetas
         fconfig = new FacetsConfig(); 
         
-        fconfig.setIndexFieldName("pregunta","facet_pregunta"); // La faceta pregunta la gestiona dentro del facet_pregunta
-        fconfig.setIndexFieldName("usuario","facet_usuario"); // La faceta usuario la gestiona dentro del facet_usuario
+        fconfig.setIndexFieldName("es_pregunta","facet_es_pregunta"); // La faceta es_pregunta la gestiona dentro del facet_es_pregunta
         fconfig.setIndexFieldName("fecha","facet_fecha"); // La faceta fecha la gestiona dentro del facet_fecha
-        fconfig.setIndexFieldName("pregunta","facet_pregunta"); // La faceta pregunta la gestiona dentro del facet_pregunta
         fconfig.setIndexFieldName("respuesta_aceptada","facet_respuesta_aceptada"); // La faceta respuesta_aceptada la gestiona dentro del facet_respuesta_aceptada
         fconfig.setIndexFieldName("puntuacion", "facet_puntuacion"); // La faceta puntuacion la gestiona dentro del facet_puntuacion
         fconfig.setIndexFieldName("etiqueta", "facet_etiqueta"); // La faceta etiqueta la gestiona dentro del facet_etiqueta
         
         fconfig.setMultiValued("etiqueta", true); // Indicamos que la faceta etiqueta puede contener varios valores
         fconfig.setHierarchical("fecha", true); // Creamos una jerarquía para la faceta fecha
+        // Creamos un nuevo índice
+        config.setOpenMode(OpenMode.CREATE);
         
         // Construimos IndexWriter con los parámetros dados en config
         writer = new IndexWriter(dir, config); 
@@ -167,7 +168,7 @@ public final class IndexBuilder {
             doc.add(new StringField("Id_q", d[0],Field.Store.YES));
             doc.add(new StringField("OwnerUserId_q", d[1],Field.Store.YES));
             doc.add(new StringField("CreationDate_q", d[2],Field.Store.YES));
-            doc.add(new StringField("Score_q", d[3],Field.Store.YES));
+            doc.add(new IntPoint("Score_q", Integer.parseInt(d[3])));
             doc.add(new TextField("Title_q", d[4],Field.Store.YES));
             doc.add(new TextField("Body_q", d[5],Field.Store.YES));
             
@@ -180,8 +181,7 @@ public final class IndexBuilder {
             }
             
             // Incluimos las facetas
-            doc.add(new FacetField("pregunta", "true"));
-            doc.add(new FacetField("usuario", d[1]));
+            doc.add(new FacetField("es_pregunta", "true"));
             
             // Extraemos el mes y el año
             String [] fecha;
@@ -213,7 +213,7 @@ public final class IndexBuilder {
             doc.add(new StringField("OwnerUserId_a", d[1],Field.Store.YES));
             doc.add(new StringField("CreationDate_a", d[2],Field.Store.YES));
             doc.add(new TextField("ParentId_a", d[4],Field.Store.NO));
-            doc.add(new StringField("Score_a", d[3],Field.Store.YES));
+            doc.add(new IntPoint("Score_a", Integer.parseInt(d[3])));
             doc.add(new TextField("IsAcceptedAnswer_a", d[5],Field.Store.YES));            
             doc.add(new TextField("Body_a", d[6],Field.Store.YES));
             
@@ -221,7 +221,7 @@ public final class IndexBuilder {
             
             for (Element e : code.getAllElements()){
               if(e.tagName().equals("code")){
-                  doc.add(new TextField("Code_a", e.text(),Field.Store.YES));
+                    doc.add(new TextField("Code_a", e.text(),Field.Store.YES));
               }  
             }          
             
