@@ -253,6 +253,7 @@ public final class IndexBuilder {
             writer.commit();
             // Cerramos el IndexWriter
             writer.close();
+            fwriter.close();
         } catch (IOException e){
             System.out.println("Error closing index " + e);
         }

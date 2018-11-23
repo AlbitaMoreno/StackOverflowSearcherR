@@ -2,18 +2,38 @@ package stackoverflowsearcher;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.facet.FacetResult;
+import org.apache.lucene.facet.Facets;
+import org.apache.lucene.facet.FacetsCollector;
+import org.apache.lucene.facet.FacetsConfig;
+import org.apache.lucene.facet.LabelAndValue;
+import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts;
+import org.apache.lucene.facet.taxonomy.TaxonomyReader;
+import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyReader;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
 public class IndexSearch {
     private static final String INDEX_DIRECTORY = "./index";
+    private final String INDEX_DIRECTORY_FACETS = "./facet";
     private ProcessQuery query;
+    private TaxonomyReader txReader;
+    public Map<String, String> resultsMap = new HashMap<>();
+    public Map<String, Number> resultsFacetMap = new HashMap<>();
+    public List <FacetResult> resFacet;
+    private FacetsCollector fc = new FacetsCollector();
+
     //==========================================================================
     //  Los índices tienen los siguientes campos:
     //      Questions:
@@ -29,11 +49,12 @@ public class IndexSearch {
     //          4. Score
     //          5. Code
     //======================================================================
-    public IndexSearch(String line) {
+    public IndexSearch(String line) throws IOException {
+        this.txReader = new DirectoryTaxonomyReader(FSDirectory.open(Paths.get(INDEX_DIRECTORY_FACETS)));
         this.query = new ProcessQuery(line);
     }
     
-    public void indexSearch() throws IOException, ParseException {
+    private void _indexSearch() throws IOException, ParseException {
         // Abrimos el directorio donde se ubica el índice creado
         IndexReader reader = DirectoryReader.open(
                 FSDirectory.open(Paths.get(INDEX_DIRECTORY)));
@@ -45,9 +66,7 @@ public class IndexSearch {
         
         TopDocs results = searcher.search(this.query.procQuery(),100);
         ScoreDoc [] hits = results.scoreDocs;
-        
-        System.out.println("--------------------RESULTADOS--------------------");
-        
+                
         for(int j=0; j < hits.length; j++){
             Document doc = searcher.doc(hits[j].doc);
             String title_q = doc.get("Title_q");
@@ -59,21 +78,42 @@ public class IndexSearch {
 
             //Integer id = doc.getField("Score").numericValue().intValue();
             if(title_q != null)
-                System.out.println("Título pregunta: \n" + title_q);
+                resultsMap.put("Title_q",title_q);
             if(body_q != null)
-                System.out.println("Cuerpo: \n" + body_q);
+                resultsMap.put("Body_q",body_q);
             if(code_q != null)
-                System.out.println("Código relacionado con la pregunta \n" + code_q);
+                resultsMap.put("Code_q",code_q);
             if(title_a != null)
-                System.out.println("Título respuesta: \n" + title_a);
+                resultsMap.put("Title_a",title_a);
             if(body_a != null)
-                System.out.println("Cuerpo: \n" + body_a);
+                resultsMap.put("Body_a",body_a);
             if(code_a != null)
-                System.out.println("Código relacionado con la pregunta \n" + code_a);
-            
-        }
-              
+                resultsMap.put("Code_a",code_a);
+        }      
         // Cerramos el directorio de índices
         reader.close();
+        _facetSearch(searcher);
+    }
+    
+    private Map<String, Number> _facetSearch(IndexSearcher searcher) throws IOException {
+        TopDocs tdc = FacetsCollector.search(searcher,query.query,10,fc);
+        FacetsConfig fconfig = new FacetsConfig();
+        Facets facetas = new FastTaxonomyFacetCounts(txReader,fconfig,fc);
+        this.resFacet = facetas.getAllDims(100);
+        
+        for(FacetResult fr : resFacet) {      
+            for( LabelAndValue lv : fr.labelValues){
+                resultsFacetMap.put(lv.label,lv.value);
+            }
+        }        
+        return this.resultsFacetMap;
+    }
+    public Map<String, String> getResultSearch() throws IOException, ParseException{
+        _indexSearch();
+        return this.resultsMap;
+    }
+    
+    public Map<String, Number> getResultFacet(){
+        return this.resultsFacetMap;
     }
 }

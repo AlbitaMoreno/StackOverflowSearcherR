@@ -4,20 +4,16 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import org.apache.lucene.analysis.core.StopAnalyzer;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.Document;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TopDocs;
 
 public class ProcessQuery {
     private static final String INDEX_DIRECTORY = "./index";
     private String line;
+    public BooleanQuery query;
     
     public ProcessQuery(String line) {
         this.line = line;
@@ -46,7 +42,7 @@ public class ProcessQuery {
         query = parser.parse(line);
         
         queries.put("Code_q", query);
-        
+
         // Parseamos cuerpo de la respuesta
         parser = new QueryParser("Body_a", new StopAnalyzer());
         
@@ -72,12 +68,8 @@ public class ProcessQuery {
             BooleanClause bc = new BooleanClause(q, BooleanClause.Occur.SHOULD);
             bqbuilder.add(bc);
         }
+        this.query = bqbuilder.build();
         
-        return bqbuilder.build();
-    }
-    
-    public Query procFacet() {
-        Query q = new MatchAllDocsQuery();
-        return q;
+        return this.query;
     }
 }
