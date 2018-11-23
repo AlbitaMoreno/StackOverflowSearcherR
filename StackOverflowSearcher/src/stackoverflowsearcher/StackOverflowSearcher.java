@@ -38,6 +38,7 @@ public class StackOverflowSearcher {
             String line = in.readLine();
             
             IndexSearch iS = new IndexSearch(line);
+            
             if(line == null || line.length() == -1){
                 break;
             }
@@ -45,7 +46,10 @@ public class StackOverflowSearcher {
             if(line.length() == 0){
                 break;
             }
-            iS.indexSearch();
+            
+            iS.getResultSearch();
+            iS.getResultFacet();
+            
             if(line.equals("")){
                 break;
             }

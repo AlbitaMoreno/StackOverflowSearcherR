@@ -17,6 +17,7 @@ import org.apache.lucene.search.TopDocs;
 public class ProcessQuery {
     private static final String INDEX_DIRECTORY = "./index";
     private String line;
+    public BooleanQuery query;
     
     public ProcessQuery(String line) {
         this.line = line;
@@ -78,12 +79,8 @@ public class ProcessQuery {
             BooleanClause bc = new BooleanClause(q, BooleanClause.Occur.SHOULD);
             bqbuilder.add(bc);
         }
+        this.query = bqbuilder.build();
         
-        return bqbuilder.build();
-    }
-    
-    public Query procFacet() {
-        Query q = new MatchAllDocsQuery();
-        return q;
+        return this.query;
     }
 }
