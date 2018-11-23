@@ -49,7 +49,7 @@ public class ProcessQuery {
         
         // Parseamos título de la respuesta
         parser = new QueryParser("Title_a", new StandardAnalyzer());
-        
+    
         query = parser.parse(line);
         
         queries.put("Title_a", query);

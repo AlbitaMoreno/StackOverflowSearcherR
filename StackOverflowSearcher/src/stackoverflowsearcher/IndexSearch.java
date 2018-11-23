@@ -35,7 +35,7 @@ public class IndexSearch {
     public Map<String, String> resultsMap = new HashMap<>();
     public Map<String, Number> resultsFacetMap = new HashMap<>();
     public List <FacetResult> resFacet;
-    private FacetsCollector fc = new FacetsCollector() ;
+    private FacetsCollector fc = new FacetsCollector();
 
     //==========================================================================
     //  Los índices tienen los siguientes campos:
