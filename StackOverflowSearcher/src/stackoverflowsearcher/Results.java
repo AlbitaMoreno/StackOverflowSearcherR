@@ -3,29 +3,27 @@ package stackoverflowsearcher;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
-import javax.swing.border.LineBorder;
 import org.apache.lucene.queryparser.classic.ParseException;
 
 public class Results extends javax.swing.JFrame {
 
-    /**
-     * Creates new form Inicio
-     */
+    private String query;
+    
+    
     public Results(String q) {
         initComponents();
-                
+        
+        this.query = q;
+        
         // Pongo título
         this.setTitle("Results");
         
@@ -44,7 +42,7 @@ public class Results extends javax.swing.JFrame {
             // Obtener resultados
             IndexSearch iS = null;
             try {
-                iS = new IndexSearch(q);
+                iS = new IndexSearch(this.query);
                 resultSearch = iS.getResultSearch();
                 System.out.println(resultSearch);
             } catch (IOException | ParseException ex) {

@@ -2,18 +2,10 @@ package stackoverflowsearcher;
 
 
 import java.awt.Color;
-import java.io.IOException;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JOptionPane;
-import org.apache.lucene.queryparser.classic.ParseException;
 
 public class StackOverflowSearch extends javax.swing.JFrame {
 
-    /**
-     * Creates new form Inicio
-     */
     public StackOverflowSearch() {
         initComponents();
                 
