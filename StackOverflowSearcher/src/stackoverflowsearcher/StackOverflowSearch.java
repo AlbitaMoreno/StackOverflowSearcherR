@@ -16,6 +16,9 @@ public class StackOverflowSearch extends javax.swing.JFrame {
      */
     public StackOverflowSearch() {
         initComponents();
+                
+        // Pongo título
+        this.setTitle("Search");
         
         // Color JFrame
         this.getContentPane().setBackground(new Color(226,154,1));
@@ -98,16 +101,11 @@ public class StackOverflowSearch extends javax.swing.JFrame {
     private void searchbuttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchbuttonActionPerformed
         String q = query.getText();
         if(!q.isEmpty()) {
-            IndexSearch iS = null;
-            try {
-                iS = new IndexSearch(q);
-                Map<String, String> resultSearch = iS.getResultSearch();
-            } catch (IOException | ParseException ex) {
-                Logger.getLogger(StackOverflowSearch.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            Map<String, Number> resultFacet = iS.getResultFacet();
+            Results r = new Results(q);
+            r.setVisible(true);
+            this.dispose();
         }
-        else JOptionPane.showMessageDialog(rootPane,"No se ha introducido la consulta");
+        else JOptionPane.showMessageDialog(rootPane,"You don't have introduce any query");
     }//GEN-LAST:event_searchbuttonActionPerformed
 
     /**
