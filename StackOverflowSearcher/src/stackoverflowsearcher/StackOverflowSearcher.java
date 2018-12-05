@@ -12,6 +12,7 @@ public class StackOverflowSearcher {
     
     public static void main(String[] args) throws Exception { 
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
+
         // Búsqueda
         while(true){
             System.out.println("Consulta?: ");
@@ -27,8 +28,9 @@ public class StackOverflowSearcher {
                 break;
             }
             
-            iS.getResultSearch();
-            iS.getResultFacet();
+            System.out.println(iS.getResultSearch().toString());
+            System.out.println("-------------------------------------------------------------------------");
+            System.out.println(iS.getResultFacet());
             
             if(line.equals("")){
                 break;

@@ -2,10 +2,11 @@ package stackoverflowsearcher;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javafx.util.Pair;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.facet.FacetResult;
 import org.apache.lucene.facet.Facets;
@@ -20,16 +21,18 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.store.Directory;
+import org.apache.lucene.search.TopFieldDocs;
 import org.apache.lucene.store.FSDirectory;
 
 public class IndexSearch {
     private static final String INDEX_DIRECTORY = "./../../index";
-    private final String INDEX_DIRECTORY_FACETS = "./../../facet";
+    private final String FACET_DIRECTORY = "./../../facet";
     private ProcessQuery query;
     private TaxonomyReader txReader;
-    public Map<String, String> resultsMap = new HashMap<>();
+    public List<Pair<String, String>> resultsSearch = new ArrayList<>();
     public Map<String, Number> resultsFacetMap = new HashMap<>();
     public List <FacetResult> resFacet;
     private FacetsCollector fc = new FacetsCollector();
@@ -50,7 +53,7 @@ public class IndexSearch {
     //          5. Code
     //======================================================================
     public IndexSearch(String line) throws IOException {
-        this.txReader = new DirectoryTaxonomyReader(FSDirectory.open(Paths.get(INDEX_DIRECTORY_FACETS)));
+        this.txReader = new DirectoryTaxonomyReader(FSDirectory.open(Paths.get(FACET_DIRECTORY)));
         this.query = new ProcessQuery(line);
     }
     
@@ -64,35 +67,28 @@ public class IndexSearch {
         // Por defecto, le vamos a asignar la métrica de similitud BM25Similarity
         IndexSearcher searcher = new IndexSearcher(reader);
         
-        TopDocs results = searcher.search(this.query.procQuery(),100);
-        ScoreDoc [] hits = results.scoreDocs;
-                
-        for(int j=0; j < hits.length; j++){
-            Document doc = searcher.doc(hits[j].doc);
-            String title_q = doc.get("Title_q");
-            String body_q = doc.get("Body_q");
-            String code_q = doc.get("Code_q");
-            String title_a = doc.get("Title_a");
-            String body_a = doc.get("Body_a");
-            String code_a = doc.get("Code_a");
-
-            //Integer id = doc.getField("Score").numericValue().intValue();
-            if(title_q != null)
-                resultsMap.put("Title_q",title_q);
-            if(body_q != null)
-                resultsMap.put("Body_q",body_q);
-            if(code_q != null)
-                resultsMap.put("Code_q",code_q);
-            if(title_a != null)
-                resultsMap.put("Title_a",title_a);
-            if(body_a != null)
-                resultsMap.put("Body_a",body_a);
-            if(code_a != null)
-                resultsMap.put("Code_a",code_a);
-        }      
-        // Cerramos el directorio de índices
+        // Creamos el criterio de ordenación
+        SortField sf = new SortField("Score", SortField.Type.INT, true); // Ordenamos los documentos por score decreciente
+        sf.setMissingValue(0);
+        Sort orden = new Sort(sf);
         
-        _facetSearch(searcher, reader);
+        // Obtenemos documentos
+        TopFieldDocs results = searcher.search(this.query.procQuery(),10, orden);
+       
+        for(ScoreDoc hit : results.scoreDocs){
+            Document doc = searcher.doc(hit.doc);
+            String title = doc.get("Title");
+            String body = doc.get("Body");
+            String code = doc.get("Code");
+            String score = doc.get("Score");
+           
+            resultsSearch.add(new Pair<>("Title",title));
+            resultsSearch.add(new Pair<>("Body",body));
+            resultsSearch.add(new Pair<>("Code",code));
+            resultsSearch.add(new Pair<>("Score",score)); 
+        }      
+      
+        //_facetSearch(searcher);
     }
     
     private Map<String, Number> _facetSearch(IndexSearcher searcher, IndexReader reader) throws IOException {
@@ -109,9 +105,10 @@ public class IndexSearch {
         reader.close();
         return this.resultsFacetMap;
     }
-    public Map<String, String> getResultSearch() throws IOException, ParseException{
+    
+    public List<Pair<String, String>> getResultSearch() throws IOException, ParseException{
         _indexSearch();
-        return this.resultsMap;
+        return this.resultsSearch;
     }
     
     public Map<String, Number> getResultFacet(){

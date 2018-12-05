@@ -1,7 +1,9 @@
 package stackoverflowsearcher;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import org.apache.lucene.analysis.core.StopAnalyzer;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -20,55 +22,36 @@ public class ProcessQuery {
     }
     
     public BooleanQuery procQuery() throws ParseException {
-        Map<String,Query> queries = new HashMap<String,Query>();
+        List<Query> queries = new ArrayList<>();
         
-        // Parseamos título de la pregunta
-        QueryParser parser = new QueryParser("Title_q", new StopAnalyzer());
+        Query query;
+        QueryParser parser;
+        for(String t : this.line.split(" ")) {
+            // Parseamos título
+            parser = new QueryParser("Title", new StopAnalyzer());
+            query = parser.parse(t);
+            queries.add(query);
+            
+            // Parseamos cuerpo
+            parser = new QueryParser("Body", new StopAnalyzer());
+            query = parser.parse(t);
+            queries.add(query);
+            
+            // Parseamos código 
+            parser = new QueryParser("Code", new StopAnalyzer());
+            query = parser.parse(t);
+            queries.add(query);
+        }
         
-        Query query = parser.parse(line);
-        
-        queries.put("Title_q", query);
-        
-        // Parseamos cuerpo de la pregunta
-        parser = new QueryParser("Body_q", new StopAnalyzer());
-        
-        query = parser.parse(line);
-        
-        queries.put("Body_q", query);
-        
-        // Parseamos código de la pregunta
-        parser = new QueryParser("Code_q", new StopAnalyzer());
-        
-        query = parser.parse(line);
-        
-        queries.put("Code_q", query);
-
-        // Parseamos cuerpo de la respuesta
-        parser = new QueryParser("Body_a", new StopAnalyzer());
-        
-        query = parser.parse(line);
-        
-        queries.put("Body_a", query);
-        
-        // Parseamos código de la pregunta
-        parser = new QueryParser("Code_a", new StopAnalyzer());
-        
-        query = parser.parse(line);
-        
-        queries.put("Code_a", query);
-        
+        // Construimos la consulta
         BooleanQuery.Builder bqbuilder = new BooleanQuery.Builder();
         
-        Iterator it = queries.entrySet().iterator();
-        while(it.hasNext()) {
-            Map.Entry e = (Map.Entry) it.next();
-            String field = (String) e.getKey();
-            Query q = (Query) e.getValue();
-            
+        for(Query q : queries) {
             BooleanClause bc = new BooleanClause(q, BooleanClause.Occur.SHOULD);
             bqbuilder.add(bc);
         }
         this.query = bqbuilder.build();
+        System.out.println(this.query.toString());
         
         return this.query;
     }
