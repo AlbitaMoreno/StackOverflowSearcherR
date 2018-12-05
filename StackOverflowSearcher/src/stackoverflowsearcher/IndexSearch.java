@@ -20,7 +20,6 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
@@ -75,7 +74,7 @@ public class IndexSearch {
         
         // Obtenemos documentos
         TopFieldDocs results = searcher.search(this.query.procQuery(),10, orden);
-        
+       
         for(ScoreDoc hit : results.scoreDocs){
             Document doc = searcher.doc(hit.doc);
             String title = doc.get("Title");
@@ -88,11 +87,11 @@ public class IndexSearch {
             resultsSearch.add(new Pair<>("Code",code));
             resultsSearch.add(new Pair<>("Score",score)); 
         }      
-        
+      
         //_facetSearch(searcher);
     }
     
-    private Map<String, Number> _facetSearch(IndexSearcher searcher) throws IOException {
+    private Map<String, Number> _facetSearch(IndexSearcher searcher, IndexReader reader) throws IOException {
         TopDocs tdc = FacetsCollector.search(searcher,query.query,10,fc);
         FacetsConfig fconfig = new FacetsConfig();
         Facets facetas = new FastTaxonomyFacetCounts(txReader,fconfig,fc);
@@ -102,7 +101,8 @@ public class IndexSearch {
             for( LabelAndValue lv : fr.labelValues){
                 resultsFacetMap.put(lv.label,lv.value);
             }
-        }        
+        }
+        reader.close();
         return this.resultsFacetMap;
     }
     
