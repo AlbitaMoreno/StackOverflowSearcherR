@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import javafx.util.Pair;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.facet.DrillDownQuery;
 import org.apache.lucene.facet.FacetResult;
 import org.apache.lucene.facet.Facets;
 import org.apache.lucene.facet.FacetsCollector;
@@ -33,7 +34,6 @@ public class IndexSearch {
     private ProcessQuery query;
     private TaxonomyReader txReader;
     public List<Pair<String, String>> resultsSearch = new ArrayList<>();
-    public Map<String, Number> resultsFacetMap = new HashMap<>();
     public List <FacetResult> resFacet;
     private FacetsCollector fc = new FacetsCollector();
 
@@ -73,7 +73,7 @@ public class IndexSearch {
         Sort orden = new Sort(sf);
         
         // Obtenemos documentos
-        TopFieldDocs results = searcher.search(this.query.procQuery(),10, orden);
+        TopFieldDocs results = searcher.search(this.query.procQuery(),20, orden);
        
         for(ScoreDoc hit : results.scoreDocs){
             Document doc = searcher.doc(hit.doc);
@@ -87,31 +87,56 @@ public class IndexSearch {
             resultsSearch.add(new Pair<>("Code",code));
             resultsSearch.add(new Pair<>("Score",score)); 
         }      
-      
-        //_facetSearch(searcher);
-    }
+    } 
+   
+    public List<Pair<String, String>> _facetSearch(String campo, String v1, String v2) throws IOException {
+        // Abrimos el directorio donde se ubica el índice creado
+        IndexReader reader = DirectoryReader.open(
+                FSDirectory.open(Paths.get(INDEX_DIRECTORY)));
     
-    private Map<String, Number> _facetSearch(IndexSearcher searcher, IndexReader reader) throws IOException {
-        TopDocs tdc = FacetsCollector.search(searcher,query.query,10,fc);
-        FacetsConfig fconfig = new FacetsConfig();
-        Facets facetas = new FastTaxonomyFacetCounts(txReader,fconfig,fc);
-        this.resFacet = facetas.getAllDims(100);
+        // Instanciamos la clase IndexSearcher, que se encarga de realizar
+        // la búsqueda sobre el índice creado
+        // Por defecto, le vamos a asignar la métrica de similitud BM25Similarity
+        IndexSearcher searcher = new IndexSearcher(reader);
         
-        for(FacetResult fr : resFacet) {      
-            for( LabelAndValue lv : fr.labelValues){
-                resultsFacetMap.put(lv.label,lv.value);
-            }
+        FacetsConfig fconfig = new FacetsConfig();
+        fconfig.setMultiValued("etiqueta", true); // Indicamos que la faceta etiqueta puede contener varios valores
+        fconfig.setHierarchical("fecha", true); // Creamos una jerarquía para la faceta fecha
+        
+        DrillDownQuery q = new DrillDownQuery(fconfig, this.query.query);
+        if(v2 == null) q.add(campo, v1);
+        else q.add(campo, v1, v2);
+        
+        FacetsCollector fc = new FacetsCollector();
+        TopDocs tdc = FacetsCollector.search(searcher, q, 10, fc);
+        System.out.println(tdc.totalHits);
+        
+        // Retrieve results
+        Facets facets = new FastTaxonomyFacetCounts(txReader, fconfig, fc);
+        List<FacetResult> result = facets.getAllDims(100);
+        
+        List<Pair<String, String>> resultsFacet = new ArrayList<>();
+        
+        for(ScoreDoc hit : tdc.scoreDocs){
+            Document doc = searcher.doc(hit.doc);
+            String title = doc.get("Title");
+            String body = doc.get("Body");
+            String code = doc.get("Code");
+            String score = doc.get("Score");
+           
+            resultsFacet.add(new Pair<>("Title",title));
+            resultsFacet.add(new Pair<>("Body",body));
+            resultsFacet.add(new Pair<>("Code",code));
+            resultsFacet.add(new Pair<>("Score",score)); 
         }
+        
         reader.close();
-        return this.resultsFacetMap;
+        return resultsFacet;
     }
     
     public List<Pair<String, String>> getResultSearch() throws IOException, ParseException{
         _indexSearch();
         return this.resultsSearch;
     }
-    
-    public Map<String, Number> getResultFacet(){
-        return this.resultsFacetMap;
-    }
+
 }

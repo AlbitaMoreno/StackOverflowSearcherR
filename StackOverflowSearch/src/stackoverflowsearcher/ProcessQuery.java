@@ -48,7 +48,6 @@ public class ProcessQuery {
             bqbuilder.add(bc);
         }
         this.query = bqbuilder.build();
-        System.out.println(this.query.toString());
         
         return this.query;
     }

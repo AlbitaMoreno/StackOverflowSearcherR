@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.util.Pair;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
@@ -19,7 +20,9 @@ import org.apache.lucene.queryparser.classic.ParseException;
 public class Results extends javax.swing.JFrame {
 
     private String query;
-    
+    private IndexSearch iS;
+    public List<Pair<String, String>> resultSearch = new ArrayList<>();
+    public List<Pair<String, String>> resultFacet = new ArrayList<>();
     
     public Results(String q) {
         initComponents();
@@ -42,16 +45,12 @@ public class Results extends javax.swing.JFrame {
         List<Pair<String, String>> resultSearch = new ArrayList<>();
         if(ff.isDirectory() && ff.list().length > 0 && fi.isDirectory() && fi.list().length > 0) {
             // Obtener resultados
-            IndexSearch iS = null;
             try {
-                iS = new IndexSearch(this.query);
+                this.iS = new IndexSearch(this.query);
                 resultSearch = iS.getResultSearch();
-                System.out.println(resultSearch);
             } catch (IOException | ParseException ex) {
                 Logger.getLogger(Results.class.getName()).log(Level.SEVERE, null, ex);
             }
-            Map<String, Number> resultFacet = iS.getResultFacet();
-            System.out.println(resultFacet);
         }
         
         int size = resultSearch.size() / 4;
@@ -77,7 +76,59 @@ public class Results extends javax.swing.JFrame {
             res.add(sp);
         }
     }
-
+    
+    public int doFacetPanel()  {
+        int size = resultFacet.size() / 4;
+        
+        res.setPreferredSize(new Dimension(600, 120*size + 5*(size+1)));
+        JTextArea ta;         
+        JScrollPane sp;
+        
+        for(int i=0;i<(size*4);i+=4) {
+            String text = "";
+            for(int j=i; j<(i+4); j++) {
+                Pair<String,String> p = resultFacet.get(j);
+                if(p.getValue() != null) text += (p.getKey() + " = " + p.getValue() + "\n");
+            }
+            ta = new JTextArea(text);
+            ta.setEditable(false);
+            ta.setBounds(5, 5 + (120*(i/4)) + (5*(i/4)) , 550, 120);
+            
+            sp = new JScrollPane(ta);
+            sp.setBounds(5, 5 + (120*(i/4)) + (5*(i/4)) , 550, 120);
+            sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+            
+            res.add(sp);
+        }
+        
+        return size;
+    }
+    
+    public void doSearchPanel()  {
+        int size = resultSearch.size() / 4;
+        
+        res.setPreferredSize(new Dimension(600, 120*size + 5*(size+1)));
+        JTextArea ta;         
+        JScrollPane sp;
+        
+        for(int i=0;i<(size*4);i+=4) {
+            String text = "";
+            for(int j=i; j<(i+4); j++) {
+                Pair<String,String> p = resultSearch.get(j);
+                if(p.getValue() != null) text += (p.getKey() + " = " + p.getValue() + "\n");
+            }
+            ta = new JTextArea(text);
+            ta.setEditable(false);
+            ta.setBounds(5, 5 + (120*(i/4)) + (5*(i/4)) , 550, 120);
+            
+            sp = new JScrollPane(ta);
+            sp.setBounds(5, 5 + (120*(i/4)) + (5*(i/4)) , 550, 120);
+            sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+            
+            res.add(sp);
+        }
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -316,9 +367,34 @@ public class Results extends javax.swing.JFrame {
     }//GEN-LAST:event_answer_accept_noActionPerformed
 
     private void filter_search_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_filter_search_buttonActionPerformed
-        // if(questions.isSelected())
         res.removeAll();
+        
+        if(questions.isSelected()) {
+            try {
+                this.resultFacet = iS._facetSearch("es_pregunta", "true", null);
+            } catch (IOException ex) {
+                Logger.getLogger(Results.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            int size = resultFacet.size() / 4;
+            JOptionPane.showMessageDialog(rootPane, "There are " + size + " documents with that facet.");
+        
+            this.doFacetPanel();
+        }
+        else if(answers.isSelected()) {
+            try {
+                this.resultFacet = iS._facetSearch("es_pregunta", "false", null);
+            } catch (IOException ex) {
+                Logger.getLogger(Results.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            int size = resultFacet.size() / 4;
+            JOptionPane.showMessageDialog(rootPane, "There are " + size + " documents with that facet.");
+        
+            int ndocs = this.doFacetPanel();
+        }
+        else this.doSearchPanel();
+        
         res.repaint();
+        
     }//GEN-LAST:event_filter_search_buttonActionPerformed
 
 
