@@ -45,24 +45,6 @@ public class ProcessQuery {
             query = parser.parse(t);
             queries.add(query);
         }
-            
-        /*Query query;
-        for(String t : this.line.split(" ")) {
-            query = new TermQuery(new Term("Title", t));
-            queries.put("Title", query);
-            
-            System.out.println(query.toString());
-            
-            query = new TermQuery(new Term("Body", t));
-            queries.put("Body", query);
-            
-            System.out.println(query.toString());
-            
-            query = new TermQuery(new Term("Code", t));
-            queries.put("Code", query);
-            
-            System.out.println(query.toString());
-        }*/
         
         // Construimos la consulta
         BooleanQuery.Builder bqbuilder = new BooleanQuery.Builder();
