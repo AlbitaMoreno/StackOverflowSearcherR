@@ -6,7 +6,6 @@ import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -55,17 +54,24 @@ public class Results extends javax.swing.JFrame {
             System.out.println(resultFacet);
         }
         
-        res.setPreferredSize(new Dimension(600, 120*9 + 5*10));
+        int size = resultSearch.size() / 4;
+        
+        res.setPreferredSize(new Dimension(600, 120*size + 5*(size+1)));
         JTextArea ta;         
         JScrollPane sp;
         
-        for(int i=0;i<9;i++) {
-            ta = new JTextArea(resultSearch.toString());
+        for(int i=0;i<(size*4);i+=4) {
+            String text = "";
+            for(int j=i; j<(i+4); j++) {
+                Pair<String,String> p = resultSearch.get(j);
+                if(p.getValue() != null) text += (p.getKey() + " = " + p.getValue() + "\n");
+            }
+            ta = new JTextArea(text);
             ta.setEditable(false);
-            ta.setBounds(5, 5 + (120*i) + (5*i) , 550, 120);
+            ta.setBounds(5, 5 + (120*(i/4)) + (5*(i/4)) , 550, 120);
             
             sp = new JScrollPane(ta);
-            sp.setBounds(5, 5 + (120*i) + (5*i) , 550, 120);
+            sp.setBounds(5, 5 + (120*(i/4)) + (5*(i/4)) , 550, 120);
             sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
             
             res.add(sp);
@@ -226,9 +232,9 @@ public class Results extends javax.swing.JFrame {
                                 .addComponent(tag_name, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(creation_date)
-                                .addGap(18, 18, 18)
+                                .addGap(10, 10, 10)
                                 .addComponent(creation_date_month, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGap(18, 18, 18)
                                 .addComponent(creation_date_year, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(creation_date1)
@@ -237,15 +243,15 @@ public class Results extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(125, 125, 125)
                         .addComponent(filter_search_button)))
-                .addGap(41, 41, 41)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
+                        .addGap(41, 41, 41)
                         .addComponent(scroll, javax.swing.GroupLayout.PREFERRED_SIZE, 588, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(title)
-                        .addGap(291, 291, 291))))
+                        .addGap(264, 264, 264))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
