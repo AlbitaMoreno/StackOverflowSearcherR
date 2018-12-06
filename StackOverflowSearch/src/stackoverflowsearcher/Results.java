@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -23,11 +24,14 @@ public class Results extends javax.swing.JFrame {
     private IndexSearch iS;
     public List<Pair<String, String>> resultSearch = new ArrayList<>();
     public List<Pair<String, String>> resultFacet = new ArrayList<>();
+    private String[] meses;
     
     public Results(String q) {
         initComponents();
         
         this.query = q;
+        this.meses = new String[]{"ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO",
+            "JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"};
         
         // Pongo título
         this.setTitle("Results");
@@ -42,39 +46,17 @@ public class Results extends javax.swing.JFrame {
         File ff = new File("./../../facet");
         File fi = new File("./../../index");
         
-        List<Pair<String, String>> resultSearch = new ArrayList<>();
         if(ff.isDirectory() && ff.list().length > 0 && fi.isDirectory() && fi.list().length > 0) {
             // Obtener resultados
             try {
                 this.iS = new IndexSearch(this.query);
-                resultSearch = iS.getResultSearch();
+                this.resultSearch = iS.getResultSearch();
             } catch (IOException | ParseException ex) {
                 Logger.getLogger(Results.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         
-        int size = resultSearch.size() / 4;
-        
-        res.setPreferredSize(new Dimension(600, 120*size + 5*(size+1)));
-        JTextArea ta;         
-        JScrollPane sp;
-        
-        for(int i=0;i<(size*4);i+=4) {
-            String text = "";
-            for(int j=i; j<(i+4); j++) {
-                Pair<String,String> p = resultSearch.get(j);
-                if(p.getValue() != null) text += (p.getKey() + " = " + p.getValue() + "\n");
-            }
-            ta = new JTextArea(text);
-            ta.setEditable(false);
-            ta.setBounds(5, 5 + (120*(i/4)) + (5*(i/4)) , 550, 120);
-            
-            sp = new JScrollPane(ta);
-            sp.setBounds(5, 5 + (120*(i/4)) + (5*(i/4)) , 550, 120);
-            sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-            
-            res.add(sp);
-        }
+        this.doSearchPanel();
     }
     
     public int doFacetPanel()  {
@@ -104,7 +86,7 @@ public class Results extends javax.swing.JFrame {
         return size;
     }
     
-    public void doSearchPanel()  {
+    public int doSearchPanel()  {
         int size = resultSearch.size() / 4;
         
         res.setPreferredSize(new Dimension(600, 120*size + 5*(size+1)));
@@ -127,7 +109,10 @@ public class Results extends javax.swing.JFrame {
             
             res.add(sp);
         }
+        
+        return size;
     }
+    
     
     /**
      * This method is called from within the constructor to initialize the form.
@@ -369,32 +354,30 @@ public class Results extends javax.swing.JFrame {
     private void filter_search_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_filter_search_buttonActionPerformed
         res.removeAll();
         
-        if(questions.isSelected()) {
+        List<Pair<String,Pair<String, String>>> fa = new ArrayList<>();
+        
+        if(questions.isSelected()) fa.add(new Pair<>("es_pregunta", new Pair<>("true",null)));
+        else if(answers.isSelected()) fa.add(new Pair<>("es_pregunta", new Pair<>("false",null)));
+        else if(this.answer_accept_yes.isSelected()) fa.add(new Pair<>("respuesta_aceptada", new Pair<>("TRUE",null)));
+        else if(this.answer_accept_no.isSelected()) fa.add(new Pair<>("respuesta_aceptada", new Pair<>("FALSE",null)));
+        else if(this.high_score.isSelected()) fa.add(new Pair<>("puntuacion", new Pair<>("Alto",null)));
+        else if(this.medium_score.isSelected()) fa.add(new Pair<>("puntuacion", new Pair<>("Medio",null)));
+        else if(this.low_score.isSelected()) fa.add(new Pair<>("puntuacion", new Pair<>("Bajo",null)));
+        else if(this.tag.isSelected() && !this.tag_name.getText().isEmpty()) fa.add(new Pair<>("etiqueta", new Pair<>(this.tag_name.getText().toLowerCase(),null)));
+        else if(this.creation_date.isSelected()) fa.add(new Pair<>("fecha", new Pair<>(Integer.toString(this.creation_date_year.getYear()), meses[this.creation_date_month.getMonth()])));
+        else if(this.creation_date1.isSelected()) fa.add(new Pair<>("fecha", new Pair<>(Integer.toString(this.creation_date_year1.getYear()),null)));
+        
+        if(fa.isEmpty()) JOptionPane.showMessageDialog(rootPane, "There are " + this.doSearchPanel() + " documents with that facet.");
+        else {
             try {
-                this.resultFacet = iS._facetSearch("es_pregunta", "true", null);
+                this.resultFacet = iS._facetSearch(fa);
             } catch (IOException ex) {
                 Logger.getLogger(Results.class.getName()).log(Level.SEVERE, null, ex);
             }
-            int size = resultFacet.size() / 4;
-            JOptionPane.showMessageDialog(rootPane, "There are " + size + " documents with that facet.");
-        
-            this.doFacetPanel();
+            JOptionPane.showMessageDialog(rootPane, "There are " + this.doFacetPanel() + " documents with that facet.");
         }
-        else if(answers.isSelected()) {
-            try {
-                this.resultFacet = iS._facetSearch("es_pregunta", "false", null);
-            } catch (IOException ex) {
-                Logger.getLogger(Results.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            int size = resultFacet.size() / 4;
-            JOptionPane.showMessageDialog(rootPane, "There are " + size + " documents with that facet.");
-        
-            int ndocs = this.doFacetPanel();
-        }
-        else this.doSearchPanel();
-        
+            
         res.repaint();
-        
     }//GEN-LAST:event_filter_search_buttonActionPerformed
 
 

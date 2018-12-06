@@ -1,7 +1,5 @@
 package stackoverflowsearcher;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.lucene.analysis.core.StopAnalyzer;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -19,34 +17,40 @@ public class ProcessQuery {
     }
     
     public BooleanQuery procQuery() throws ParseException {
-        List<Query> queries = new ArrayList<>();
+        // Construimos la consulta
+        BooleanQuery.Builder bqbuilder = new BooleanQuery.Builder();
+        BooleanClause bc;
         
         Query query;
         QueryParser parser;
+        
+        // Para cada término del resultado
         for(String t : this.line.split(" ")) {
             // Parseamos título
             parser = new QueryParser("Title", new StopAnalyzer());
             query = parser.parse(t);
-            queries.add(query);
+            
+            // Añadimos el titulo como cláusula que debe aparecer forzosamente
+            bc = new BooleanClause(query, BooleanClause.Occur.SHOULD);
+            bqbuilder.add(bc);
             
             // Parseamos cuerpo
             parser = new QueryParser("Body", new StopAnalyzer());
             query = parser.parse(t);
-            queries.add(query);
+            
+            // Añadimos el cuerpo como cláusula que puede aparecer
+            bc = new BooleanClause(query, BooleanClause.Occur.SHOULD);
+            bqbuilder.add(bc);
             
             // Parseamos código 
             parser = new QueryParser("Code", new StopAnalyzer());
             query = parser.parse(t);
-            queries.add(query);
-        }
-        
-        // Construimos la consulta
-        BooleanQuery.Builder bqbuilder = new BooleanQuery.Builder();
-        
-        for(Query q : queries) {
-            BooleanClause bc = new BooleanClause(q, BooleanClause.Occur.SHOULD);
+            
+            // Añadimos el código como cláusula que puede aparecer
+            bc = new BooleanClause(query, BooleanClause.Occur.SHOULD);
             bqbuilder.add(bc);
         }
+        
         this.query = bqbuilder.build();
         
         return this.query;
