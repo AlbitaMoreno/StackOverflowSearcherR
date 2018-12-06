@@ -56,7 +56,7 @@ public class Results extends javax.swing.JFrame {
             }
         }
         
-        this.doSearchPanel();
+        JOptionPane.showMessageDialog(rootPane, "There are " + this.doSearchPanel() + " documents as results.");
     }
     
     public int doFacetPanel()  {
@@ -367,17 +367,21 @@ public class Results extends javax.swing.JFrame {
         else if(this.creation_date.isSelected()) fa.add(new Pair<>("fecha", new Pair<>(Integer.toString(this.creation_date_year.getYear()), meses[this.creation_date_month.getMonth()])));
         else if(this.creation_date1.isSelected()) fa.add(new Pair<>("fecha", new Pair<>(Integer.toString(this.creation_date_year1.getYear()),null)));
         
-        if(fa.isEmpty()) JOptionPane.showMessageDialog(rootPane, "There are " + this.doSearchPanel() + " documents with that facet.");
+        int size = 0;
+        
+        if(fa.isEmpty()) size = this.doSearchPanel();
         else {
             try {
                 this.resultFacet = iS._facetSearch(fa);
             } catch (IOException ex) {
                 Logger.getLogger(Results.class.getName()).log(Level.SEVERE, null, ex);
             }
-            JOptionPane.showMessageDialog(rootPane, "There are " + this.doFacetPanel() + " documents with that facet.");
+            size = this.doFacetPanel();
         }
             
         res.repaint();
+        
+        JOptionPane.showMessageDialog(rootPane, "There are " + size + " documents with that facet.");
     }//GEN-LAST:event_filter_search_buttonActionPerformed
 
 
