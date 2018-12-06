@@ -363,7 +363,10 @@ public class Results extends javax.swing.JFrame {
         else if(this.high_score.isSelected()) fa.add(new Pair<>("puntuacion", new Pair<>("Alto",null)));
         else if(this.medium_score.isSelected()) fa.add(new Pair<>("puntuacion", new Pair<>("Medio",null)));
         else if(this.low_score.isSelected()) fa.add(new Pair<>("puntuacion", new Pair<>("Bajo",null)));
-        else if(this.tag.isSelected() && !this.tag_name.getText().isEmpty()) fa.add(new Pair<>("etiqueta", new Pair<>(this.tag_name.getText().toLowerCase(),null)));
+        else if(this.tag.isSelected()){
+            if(!this.tag_name.getText().isEmpty()) fa.add(new Pair<>("etiqueta", new Pair<>(this.tag_name.getText().toLowerCase(),null)));
+            else JOptionPane.showMessageDialog(rootPane, "Introduce a tag");
+        }
         else if(this.creation_date.isSelected()) fa.add(new Pair<>("fecha", new Pair<>(Integer.toString(this.creation_date_year.getYear()), meses[this.creation_date_month.getMonth()])));
         else if(this.creation_date1.isSelected()) fa.add(new Pair<>("fecha", new Pair<>(Integer.toString(this.creation_date_year1.getYear()),null)));
         
@@ -379,6 +382,7 @@ public class Results extends javax.swing.JFrame {
             size = this.doFacetPanel();
         }
             
+        scroll.repaint();
         res.repaint();
         
         JOptionPane.showMessageDialog(rootPane, "There are " + size + " documents with that facet.");
